@@ -34,7 +34,11 @@ pub mod funds_program {
     //     spend_usdc_handler(ctx, amount_cents)
     // }
 
-    pub fn withdraw_usdc(ctx: Context<WithdrawUSDC>, amount: u64) -> Result<()> {
-        withdraw_usdc_handler(ctx, amount)
+    pub fn withdraw_usdc(ctx: Context<WithdrawUSDC>, amount_cents: u64) -> Result<()> {
+        withdraw_usdc_handler(ctx, amount_cents)
+    }
+
+    pub fn stake_lamports(ctx: Context<StakeLamports>, amount: u64) -> Result<()> {
+        stake_lamports_handler(ctx, amount)
     }
 }
