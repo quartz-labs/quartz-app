@@ -19,22 +19,23 @@ describe("init_user tests", () => {
   });
 
   it("init_user incorrect signer", async () => {
-    const {program, vaultUsdcPda, otherOwnerKeypair, vaultPda, testUsdcMint} = testSetup;
-    const desiredErrorMessage = "unknown signer";
+    const {program, otherKeypairVaultUsdcPda, otherOwnerKeypair, otherKeypairVaultPda, testUsdcMint, stakeAccount, quartzManagerKeypair} = testSetup;
+    const desiredErrorMessage = "Missing signature";
 
     try {
       const tx = await program.methods
         .initUser()
         .accounts({
           // @ts-ignore - Causing an issue in Curosr IDE
-          vault: vaultPda,
-          vaultUsdc: vaultUsdcPda,
+          vault: otherKeypairVaultPda,
+          vaultUsdc: otherKeypairVaultUsdcPda,
+          stakeAccount: stakeAccount,
           owner: otherOwnerKeypair.publicKey,
           usdcMint: testUsdcMint,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })  
-        .signers([otherOwnerKeypair])
+        .signers([quartzManagerKeypair])
         .rpc();
 
       assert.fail(0, 1, "init_user instruction call should have failed");
@@ -46,7 +47,7 @@ describe("init_user tests", () => {
 
   
   it("init_user by user", async () => {
-    const {program, otherKeypairVaultUsdcPda, otherKeypairVaultPda, otherOwnerKeypair, testUsdcMint} = testSetup;
+    const {program, otherKeypairVaultUsdcPda, otherKeypairVaultPda, otherOwnerKeypair, testUsdcMint, stakeAccount} = testSetup;
 
     await program.methods
       .initUser()
@@ -54,6 +55,7 @@ describe("init_user tests", () => {
         // @ts-ignore - Causing an issue in Cursor IDE
         vault: otherKeypairVaultPda,
         vaultUsdc: otherKeypairVaultUsdcPda,
+        stakeAccount: stakeAccount,
         owner: otherOwnerKeypair.publicKey,
         usdcMint: testUsdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -64,6 +66,7 @@ describe("init_user tests", () => {
     
     const account = await program.account.vault.fetch(otherKeypairVaultPda);
     expect(account.owner.equals(otherOwnerKeypair.publicKey)).to.be.true;
+    expect(account.stakeAccount.equals(stakeAccount)).to.be.true;
   });
 
 

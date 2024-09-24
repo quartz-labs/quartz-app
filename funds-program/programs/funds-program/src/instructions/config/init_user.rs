@@ -31,6 +31,9 @@ pub struct InitializeUser<'info> {
     )]
     pub vault_usdc: Account<'info, TokenAccount>,
 
+    /// CHECK: Stake account does not need to be checked, is not read or written to
+    pub stake_account: UncheckedAccount<'info>,
+
     #[account(mut)]
     pub owner: Signer<'info>,
 
@@ -48,6 +51,7 @@ pub fn init_user_handler(ctx: Context<InitializeUser>) -> Result<()> {
     msg!("Initializing account");
 
     ctx.accounts.vault.owner = ctx.accounts.owner.key();
+    ctx.accounts.vault.stake_account = ctx.accounts.stake_account.key();
     ctx.accounts.vault.bump = ctx.bumps.vault;
 
     Ok(())

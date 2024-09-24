@@ -32,8 +32,10 @@ export const setupTests = async () => {
   
   // Generate random keypairs
   const ownerKeypair = Keypair.generate();
+  const stakeAccount = Keypair.generate().publicKey;
   const newUserKeypair = Keypair.generate();
   const otherOwnerKeypair = Keypair.generate();
+  const otherStakeAccount = Keypair.generate().publicKey;
 
   // Other variables
   const CENT_PER_USDC = 2;
@@ -129,6 +131,7 @@ export const setupTests = async () => {
         // @ts-ignore - Causing an issue in Cursor IDE
         vault: vaultPda,
         vaultUsdc: vaultUsdcPda,
+        stakeAccount: stakeAccount,
         owner: ownerKeypair.publicKey,
         usdcMint: testUsdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -149,8 +152,10 @@ export const setupTests = async () => {
     testUsdcMint,
     quartzHoldingUsdc,
     ownerKeypair,
+    stakeAccount,
     newUserKeypair,
     otherOwnerKeypair,
+    otherStakeAccount,
     vaultPda,
     vaultUsdcPda,
     otherKeypairVaultPda,
