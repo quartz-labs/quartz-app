@@ -29,7 +29,7 @@ pub fn withdraw_lamports_handler(
 ) -> Result<()> {
     msg!("Sending {} lamports to {}", amount, ctx.accounts.receiver.key());
 
-    // TODO - Implement staking protocol, check have enough then withdraw before sending to receiver
+    // TODO - First unstake
 
     if **ctx.accounts.vault.to_account_info().try_borrow_lamports()? < amount {
         return err!(ErrorCode::InsufficientFunds);

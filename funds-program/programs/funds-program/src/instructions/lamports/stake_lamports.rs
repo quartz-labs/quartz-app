@@ -23,7 +23,7 @@ pub fn stake_lamports_handler(
     msg!("Staking {} lamports", amount);
 
     // TODO - Implement
-
+    
 
     msg!("Lamports staked");
 

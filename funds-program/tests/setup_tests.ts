@@ -32,13 +32,22 @@ export const setupTests = async () => {
   
   // Generate random keypairs
   const ownerKeypair = Keypair.generate();
-  const stakeAccount = Keypair.generate().publicKey;
+  const stakeAccountKeypair = Keypair.generate();
   const newUserKeypair = Keypair.generate();
   const otherOwnerKeypair = Keypair.generate();
-  const otherStakeAccount = Keypair.generate().publicKey;
+  const otherStakeAccountKeypair = Keypair.generate();
+
+  // console.log("ownerKeypair: ", ownerKeypair.publicKey.toString());
+  // console.log("stakeAccount: ", stakeAccount.toString());
+  // console.log("newUserKeypair: ", newUserKeypair.publicKey.toString());
+  // console.log("otherOwnerKeypair: ", otherOwnerKeypair.publicKey.toString());
+  // console.log("otherStakeAccount: ", otherStakeAccount.toString());
 
   // Other variables
   const CENT_PER_USDC = 2;
+  const STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS = await connection.getMinimumBalanceForRentExemption(
+    anchor.web3.StakeProgram.space
+  );
 
   // Create USDC mint only if it doesn't exist
   if (!testUsdcMint) {
@@ -95,34 +104,65 @@ export const setupTests = async () => {
 
   async function performInitialSetup() {
     // Top-up SOL for USDC mint authority
-    const tx_UsdcMintTopup = new Transaction().add(
+    const usdcMintTopupTx = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: testUsdcKeypair.publicKey,
         lamports: LAMPORTS_PER_SOL * 1000,
       })
     );
-    await provider.sendAndConfirm(tx_UsdcMintTopup);
+    await provider.sendAndConfirm(usdcMintTopupTx);
 
     // Topup owner keypair account with SOL
-    const tx_ownerKeypairTopup = new Transaction().add(
+    const ownerKeypairTopupTx = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: otherOwnerKeypair.publicKey,
         lamports: LAMPORTS_PER_SOL * 10,
       })
     );
-    await provider.sendAndConfirm(tx_ownerKeypairTopup);
+    await provider.sendAndConfirm(ownerKeypairTopupTx);
 
     // Topup other keypair account with SOL
-    const tx_otherKeypairTopup = new Transaction().add(
+    const otherKeypairTopupTx = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: ownerKeypair.publicKey,
         lamports: LAMPORTS_PER_SOL * 10,
       })
     );
-    await provider.sendAndConfirm(tx_otherKeypairTopup);
+    await provider.sendAndConfirm(otherKeypairTopupTx);
+
+    // Create stake account
+    const createStakeAccountTx = new Transaction().add(
+      anchor.web3.StakeProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        stakePubkey: stakeAccountKeypair.publicKey,
+        authorized: {
+          staker: vaultPda,
+          withdrawer: vaultPda
+        },
+        lockup: new anchor.web3.Lockup(0, 0, ownerKeypair.publicKey),
+        lamports: STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS
+      })
+    );
+    await provider.sendAndConfirm(createStakeAccountTx, [stakeAccountKeypair]);
+
+
+    // Create other stake account
+    const createOtherStakeAccountTx = new Transaction().add(
+      anchor.web3.StakeProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        stakePubkey: otherStakeAccountKeypair.publicKey,
+        authorized: {
+          staker: otherKeypairVaultPda,
+          withdrawer: otherKeypairVaultPda
+        },
+        lockup: new anchor.web3.Lockup(0, 0, ownerKeypair.publicKey),
+        lamports: STAKE_ACCOUNT_RENT_EXEMPT_LAMPORTS
+      })
+    );
+    await provider.sendAndConfirm(createOtherStakeAccountTx, [otherStakeAccountKeypair]);
 
     // Init user
     await program.methods
@@ -131,11 +171,13 @@ export const setupTests = async () => {
         // @ts-ignore - Causing an issue in Cursor IDE
         vault: vaultPda,
         vaultUsdc: vaultUsdcPda,
-        stakeAccount: stakeAccount,
+        stakeAccount: stakeAccountKeypair.publicKey,
         owner: ownerKeypair.publicKey,
         usdcMint: testUsdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
+        stakeProgram: anchor.web3.StakeProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY
       })
       .signers([ownerKeypair])
       .rpc();
@@ -152,10 +194,10 @@ export const setupTests = async () => {
     testUsdcMint,
     quartzHoldingUsdc,
     ownerKeypair,
-    stakeAccount,
+    stakeAccount: stakeAccountKeypair.publicKey,
     newUserKeypair,
     otherOwnerKeypair,
-    otherStakeAccount,
+    otherStakeAccount: otherStakeAccountKeypair.publicKey,
     vaultPda,
     vaultUsdcPda,
     otherKeypairVaultPda,

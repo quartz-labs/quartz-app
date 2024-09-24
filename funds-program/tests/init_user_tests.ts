@@ -19,7 +19,7 @@ describe("init_user tests", () => {
   });
 
   it("init_user incorrect signer", async () => {
-    const {program, otherKeypairVaultUsdcPda, otherOwnerKeypair, otherKeypairVaultPda, testUsdcMint, stakeAccount, quartzManagerKeypair} = testSetup;
+    const {program, otherKeypairVaultUsdcPda, otherOwnerKeypair, otherKeypairVaultPda, testUsdcMint, otherStakeAccount, quartzManagerKeypair} = testSetup;
     const desiredErrorMessage = "Missing signature";
 
     try {
@@ -29,11 +29,13 @@ describe("init_user tests", () => {
           // @ts-ignore - Causing an issue in Curosr IDE
           vault: otherKeypairVaultPda,
           vaultUsdc: otherKeypairVaultUsdcPda,
-          stakeAccount: stakeAccount,
+          stakeAccount: otherStakeAccount,
           owner: otherOwnerKeypair.publicKey,
           usdcMint: testUsdcMint,
           tokenProgram: TOKEN_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
+          stakeProgram: anchor.web3.StakeProgram.programId,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY
         })  
         .signers([quartzManagerKeypair])
         .rpc();
@@ -47,7 +49,7 @@ describe("init_user tests", () => {
 
   
   it("init_user by user", async () => {
-    const {program, otherKeypairVaultUsdcPda, otherKeypairVaultPda, otherOwnerKeypair, testUsdcMint, stakeAccount} = testSetup;
+    const {program, otherKeypairVaultUsdcPda, otherKeypairVaultPda, otherOwnerKeypair, testUsdcMint, otherStakeAccount} = testSetup;
 
     await program.methods
       .initUser()
@@ -55,18 +57,20 @@ describe("init_user tests", () => {
         // @ts-ignore - Causing an issue in Cursor IDE
         vault: otherKeypairVaultPda,
         vaultUsdc: otherKeypairVaultUsdcPda,
-        stakeAccount: stakeAccount,
+        stakeAccount: otherStakeAccount,
         owner: otherOwnerKeypair.publicKey,
         usdcMint: testUsdcMint,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
+        stakeProgram: anchor.web3.StakeProgram.programId,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY
       })
       .signers([otherOwnerKeypair])
       .rpc();
     
     const account = await program.account.vault.fetch(otherKeypairVaultPda);
     expect(account.owner.equals(otherOwnerKeypair.publicKey)).to.be.true;
-    expect(account.stakeAccount.equals(stakeAccount)).to.be.true;
+    expect(account.stakeAccount.equals(otherStakeAccount)).to.be.true;
   });
 
 
