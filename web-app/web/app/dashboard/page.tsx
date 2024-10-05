@@ -12,6 +12,7 @@ import Modal, { ModalProps } from '@/components/modal/Modal';
 import { depositLamports, withdrawLamports } from '@/utils/instructions';
 import { LAMPORTS_PER_SOL, SystemProgram, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { getVault } from '@/utils/getPDAs';
+import { web3 } from '@coral-xyz/anchor';
 
 const WalletMultiButtonDynamic = dynamic(
     () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
@@ -22,15 +23,15 @@ export default function Dashboard() {
     const { connection } = useConnection();
     const wallet = useAnchorWallet();
     const router = useRouter();
-    const {publicKey, sendTransaction} = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
 
     const [modalEnabled, setModalEnabled] = useState(false);
     const [modalData, setModalData] = useState<ModalProps>({
         title: "",
         denomination: "",
         buttonText: "",
-        onConfirm: (amount: number) => {},
-        onCancel: () => {}
+        onConfirm: (amount: number) => { },
+        onCancel: () => { }
     });
 
     useEffect(() => {
@@ -41,7 +42,7 @@ export default function Dashboard() {
         }
         isLoggedIn();
     }, [wallet]);
-    
+
     const handleDeposit = () => {
         setModalEnabled(true);
         setModalData({
@@ -102,7 +103,33 @@ export default function Dashboard() {
             buttonText: "Offramp",
             onConfirm: async (amount: number) => {
                 console.log("Offramp " + amount);
+                //Add code here to call the get loan instruction
+                // const signature = "sig";                
+                // const checkTransaction = async (signature: string) => {
+                //     try {
+                //         const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'), 'confirmed');
+                //         const transaction = await connection.getParsedTransaction(signature);
+                //         if (transaction) {
+                //             console.log("Transaction is confirmed");
+                //             // Open the offramp page
+                //             window.open(rampUrl, '_blank');
+                //         } else {
+                //             console.error("Transaction is not confirmed");
+                //             // Show a message to the user
+                //             alert("Transaction is not confirmed. Please try again later.");
+                //         }
+                //     } catch (error) {
+                //         console.error("Error checking transaction:", error);
+                //         // Show a message to the user
+                //         alert("Error checking transaction. Please try again later.");
+                //     }
+                // };
+                // checkTransaction(signature);
+
+                const rampUrl = `https://exchange.mercuryo.io/?fiat_currency=EUR&currency=USDC&network=SOLANA&amount=${amount}&type=sell`
+                window.open(rampUrl, '_blank');
                 setModalEnabled(false);
+
             },
             onCancel: () => { setModalEnabled(false); }
         })
@@ -115,17 +142,17 @@ export default function Dashboard() {
             )}
 
             <div className={styles.navBar}>
-                <Image 
-                    src="/logo.svg" 
-                    alt="Quartz" 
-                    width={200} 
+                <Image
+                    src="/logo.svg"
+                    alt="Quartz"
+                    width={200}
                     height={69}
                 />
 
                 <WalletMultiButtonDynamic />
             </div>
-            
-            <Balance/>
+
+            <Balance />
 
             <div className={styles.buttons}>
                 <button onClick={handleDeposit} className={`${styles.mainButton} glassButton`}>Deposit</button>
