@@ -1,19 +1,20 @@
 use anchor_lang::prelude::*;
-use drift_sdk::{
-    cpi::{initialize_user, initialize_user_stats},
-    InitializeUser,
-    InitializeUserStats,
+use drift::{
+    cpi::{
+        accounts::{InitializeUser, InitializeUserStats}, 
+        initialize_user, 
+        initialize_user_stats
+    }, 
+    program::Drift, 
     state::{
-        User as DriftUser,
-        UserStats as DriftUserStats,
-        State as DriftState
+        state::State as DriftState, 
+        user::{
+            User as DriftUser, 
+            UserStats as DriftUserStats
+        }
     }
 };
-use crate::{
-    state::Vault,
-    errors::ErrorCode,
-    constants::DRIFT_PROGRAM_ID
-};
+use crate::state::Vault;
 
 #[derive(Accounts)]
 pub struct InitDriftAccount<'info> {
@@ -35,7 +36,7 @@ pub struct InitDriftAccount<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_user: AccountLoader<'info, User>,
+    pub drift_user: AccountLoader<'info, DriftUser>,
 
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     #[account(
@@ -55,11 +56,7 @@ pub struct InitDriftAccount<'info> {
     )]
     pub drift_state: Box<Account<'info, DriftState>>,
 
-    /// CHECK: Account is safe once the address is correct
-    #[account(
-        constraint = drift_program.key() == DRIFT_PROGRAM_ID @ ErrorCode::InvalidDriftProgram
-    )]
-    pub drift_program: UncheckedAccount<'info>,
+    pub drift_program: Program<'info, Drift>,
 
     pub rent: Sysvar<'info, Rent>,
     

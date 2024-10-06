@@ -15,10 +15,9 @@ no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
-local = []
-devnet = []
 
 [dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
-drift = { git = "https://github.com/drift-labs/protocol-v2", rev="babed162b08b1fe34e49a81c5aa3e4ec0a88ecdf", features = ["cpi"] }
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
+solana-program = "*"
+drift = { path = "../../deps/drift", features = ["cpi"] }

@@ -4,6 +4,14 @@ members = [
 ]
 resolver = "2"
 
+[workspace.dependencies]
+anchor-lang = "=0.29.0"
+anchor-spl = "=0.29.0"
+
+[patch.crates-io]
+anchor-lang = { git = "https://github.com/coral-xyz/anchor.git", tag = "v0.29.0" }
+anchor-spl = { git = "https://github.com/coral-xyz/anchor.git", tag = "v0.29.0" }
+
 [profile.release]
 overflow-checks = true
 lto = "fat"

@@ -4,12 +4,22 @@ use anchor_spl::{
     token::{Mint, Token}, 
     token::TokenAccount
 };
-use drift_sdk::{
-    cpi::withdraw, 
-    Withdraw
+use drift::{
+    cpi::{
+        accounts::Withdraw,
+        withdraw
+    },
+    program::Drift,
+    state::{
+        state::State as DriftState, 
+        user::{
+            User as DriftUser, 
+            UserStats as DriftUserStats
+        }
+    }
 };
 use crate::{
-    constants::{DRIFT_MARKET_INDEX_SOL, DRIFT_PROGRAM_ID, WSOL_MINT_ADDRESS}, 
+    constants::{DRIFT_MARKET_INDEX_SOL, WSOL_MINT_ADDRESS}, 
     errors::ErrorCode, 
     state::Vault
 };
@@ -44,7 +54,7 @@ pub struct WithdrawLamports<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_state: UncheckedAccount<'info>,
+    pub drift_state: Box<Account<'info, DriftState>>,
 
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     #[account(
@@ -53,7 +63,7 @@ pub struct WithdrawLamports<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_user: UncheckedAccount<'info>,
+    pub drift_user: AccountLoader<'info, DriftUser>,
     
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     #[account(
@@ -62,7 +72,7 @@ pub struct WithdrawLamports<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_user_stats: UncheckedAccount<'info>,
+    pub drift_user_stats: AccountLoader<'info, DriftUserStats>,
     
     #[account(
         mut,
@@ -83,11 +93,7 @@ pub struct WithdrawLamports<'info> {
 
     pub token_program: Program<'info, Token>,
 
-    /// CHECK: Account is safe once the address is correct
-    #[account(
-        constraint = drift_program.key() == DRIFT_PROGRAM_ID @ ErrorCode::InvalidDriftProgram
-    )]
-    pub drift_program: UncheckedAccount<'info>,
+    pub drift_program: Program<'info, Drift>,
 
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     pub const_account: UncheckedAccount<'info>,

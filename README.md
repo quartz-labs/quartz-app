@@ -1,2 +1,2 @@
 # quartz-app
-Quartz mobile app
+Quartz's Colosseum Radar hackathon submission

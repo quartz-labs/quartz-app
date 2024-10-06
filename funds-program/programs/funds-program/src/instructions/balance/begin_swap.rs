@@ -1,12 +1,22 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use drift_sdk::{
-    cpi::begin_swap as drift_begin_swap,  
-    BeginSwap as DriftBeginSwap
+use drift::{
+    cpi::{
+        accounts::Swap,
+        begin_swap as drift_begin_swap
+    },
+    program::Drift,
+    state::{
+        state::State as DriftState, 
+        user::{
+            User as DriftUser, 
+            UserStats as DriftUserStats
+        }
+    }
 };
 use crate::{
     constants::{
-        DRIFT_MARKET_INDEX_SOL, DRIFT_MARKET_INDEX_USDC, DRIFT_PROGRAM_ID, USDC_MINT_ADDRESS, WSOL_MINT_ADDRESS
+        DRIFT_MARKET_INDEX_SOL, DRIFT_MARKET_INDEX_USDC, USDC_MINT_ADDRESS, WSOL_MINT_ADDRESS
     }, 
     errors::ErrorCode, 
     state::Vault
@@ -52,7 +62,7 @@ pub struct BeginSwap<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_state: UncheckedAccount<'info>,
+    pub drift_state: Box<Account<'info, DriftState>>,
 
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     #[account(
@@ -61,7 +71,7 @@ pub struct BeginSwap<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_user: UncheckedAccount<'info>,
+    pub drift_user: AccountLoader<'info, DriftUser>,
 
     /// CHECK: This account is passed through to the Drift CPI, which performs the security checks
     #[account(
@@ -70,7 +80,7 @@ pub struct BeginSwap<'info> {
         seeds::program = drift_program.key(),
         bump
     )]
-    pub drift_user_stats: UncheckedAccount<'info>,
+    pub drift_user_stats: AccountLoader<'info, DriftUserStats>,
 
     #[account(
         mut,
@@ -120,11 +130,7 @@ pub struct BeginSwap<'info> {
     #[account(mut)]
     pub spot_market_usdc: UncheckedAccount<'info>,
 
-    /// CHECK: Account is safe once the address is correct
-    #[account(
-        constraint = drift_program.key() == DRIFT_PROGRAM_ID @ ErrorCode::InvalidDriftProgram
-    )]
-    pub drift_program: UncheckedAccount<'info>,
+    pub drift_program: Program<'info, Drift>,
 
     pub token_program: Program<'info, Token>,
 
@@ -148,7 +154,7 @@ pub fn begin_swap_handler(
 
     let mut cpi_ctx = CpiContext::new_with_signer(
         ctx.accounts.drift_program.to_account_info(),
-        DriftBeginSwap {
+        Swap {
             state: ctx.accounts.drift_state.to_account_info(),
             user: ctx.accounts.drift_user.to_account_info(),
             user_stats: ctx.accounts.drift_user_stats.to_account_info(),
