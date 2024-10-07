@@ -1,19 +1,18 @@
 import { AnchorProvider, BN, Idl, Program, setProvider, web3 } from "@coral-xyz/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { DRIFT_MARKET_INDEX_SOL, DRIFT_MARKET_INDEX_USDC, DRIFT_PROGRAM_ID, DRIFT_SPOT_MARKET_SOL, DRIFT_SPOT_MARKET_USDC, DRIFT_SIGNER, USDC_MINT, WSOL_MINT } from "./constants";
-import idl from "../idl/funds_program.json";
-import { FundsProgram } from "@/types/funds_program";
+import idl from "../idl/drift.json";
+import { Drift } from "@/types/drift";
 import { ASSOCIATED_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { PublicKey, SystemProgram, SYSVAR_INSTRUCTIONS_PUBKEY, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 import { getDriftSpotMarketVault, getDriftState, getDriftUser, getDriftUserStats, getVault, getVaultUsdc, getVaultWsol } from "./getPDAs";
-import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 import { getOrCreateAssociatedTokenAccountAnchor } from "./utils";
 
 export const initAccount = async (wallet: AnchorWallet, connection: web3.Connection) => {
     const provider = new AnchorProvider(connection, wallet, {commitment: "confirmed"}); 
     setProvider(provider);
-    const program = new Program(idl as Idl, provider) as unknown as Program<FundsProgram>;
+    const program = new Program(idl as Idl, provider) as unknown as Program<Drift>;
     const vaultPda = getVault(wallet.publicKey);
 
     try {
