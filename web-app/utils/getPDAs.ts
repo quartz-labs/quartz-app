@@ -1,7 +1,6 @@
 import { BN, web3 } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { DRIFT_PROGRAM_ID, FUNDS_PROGRAM_ID, USDC_MINT, WSOL_MINT } from "./constants";
-import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
+import { DRIFT_PROGRAM_ID, FUNDS_PROGRAM_ID } from "./constants";
 
 export const getVault = (owner: PublicKey) => {
     const [vault] = web3.PublicKey.findProgramAddressSync(
@@ -11,17 +10,9 @@ export const getVault = (owner: PublicKey) => {
     return vault;
 }
 
-export const getVaultUsdc = (vaultPda: PublicKey) => {
-    const [vaultUsdc] = web3.PublicKey.findProgramAddressSync(
-        [vaultPda.toBuffer(), USDC_MINT.toBuffer()],
-        new web3.PublicKey(FUNDS_PROGRAM_ID)
-    );
-    return vaultUsdc;
-}
-
-export const getVaultWsol = (vaultPda: PublicKey) => {
+export const getVaultSpl = (vaultPda: PublicKey, mint: PublicKey) => {
     const [vaultWSol] = web3.PublicKey.findProgramAddressSync(
-        [vaultPda.toBuffer(), WSOL_MINT.toBuffer()],
+        [vaultPda.toBuffer(), mint.toBuffer()],
         new web3.PublicKey(FUNDS_PROGRAM_ID)
     );
     return vaultWSol;
